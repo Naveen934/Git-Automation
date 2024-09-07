@@ -1,11 +1,19 @@
-import streamlit as st
-import pytest
-from streamlit.testing.v1 import AppTest
 from app import home
+import streamlit as st
 
-def test_home():
-    at = AppTest.from_function(home)
-    at.run()
+def test_home(monkeypatch):
+    # This will store any streamlit commands called
+    streamlit_calls = []
     
-    # Check if the title is present
-    assert at.title[0].value == "Hello World!"
+    # Mock the st.title function
+    def mock_title(*args, **kwargs):
+        streamlit_calls.append(('title', args, kwargs))
+    
+    # Replace st.title with our mock function
+    monkeypatch.setattr(st, 'title', mock_title)
+    
+    # Call the home function
+    home()
+    
+    # Check if st.title was called with "Hello World!"
+    assert ('title', ('Hello World!',), {}) in streamlit_calls
